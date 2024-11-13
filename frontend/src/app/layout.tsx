@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/trpc/react";
+import Header from "./_components/header";
 
 export const metadata: Metadata = {
   title: "Meal Prep Pro",
@@ -17,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <body className="bg-background">
+        <Header />
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>

@@ -178,8 +178,8 @@ export default function Meal(props: MealProps) {
                 <MealIdeas data={data} selectCallback={setSelected} />
               )}
             </div>
-            <div className="space-x-4">
-              <Button type="submit">
+            <div className="flex flex-row gap-4">
+              <Button className="ml-auto" type="submit">
                 {data == null ? 'Generate Ideas' : 'Refresh Ideas'}
               </Button>
               <Button type="button" onClick={removeMeal} variant="destructive">

@@ -96,7 +96,11 @@ function App() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-row gap-4">
-            <Button onClick={startNewMeal} variant="default">
+            <Button
+              className="ml-auto"
+              onClick={startNewMeal}
+              variant="default"
+            >
               Create New
             </Button>
             <Button variant="secondary">Modify Existing</Button>
@@ -113,8 +117,10 @@ function App() {
           />
         ))}
         {meals.length != 0 ? (
-          <div className="space-x-4">
-            <Button onClick={addNewMeal}>Add Meal</Button>
+          <div className="flex flex-row gap-4">
+            <Button className="ml-auto" onClick={addNewMeal}>
+              Add Meal
+            </Button>
             <Button variant="secondary">Finish Plan</Button>
           </div>
         ) : (

@@ -13,3 +13,13 @@ export const MealInput = z.object({
 });
 
 export type MealInputType = z.infer<typeof MealInput>;
+
+export interface MealIdea {
+  name: string;
+  description: string;
+}
+
+export interface Ideas {
+  ideas: MealIdea[];
+  selected: number;
+}

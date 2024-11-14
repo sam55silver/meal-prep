@@ -1,4 +1,6 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
 from typing import List
 from openai import OpenAI
@@ -6,6 +8,18 @@ import os
 
 # Initialize FastAPI app
 app = FastAPI()
+
+origins = [
+    "*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # List of allowed origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all HTTP headers
+)
 
 # Retrieve OpenAI API key from environment variable
 client = OpenAI(
@@ -16,8 +30,8 @@ client = OpenAI(
 # Define request model
 class IdeasRequest(BaseModel):
     style: str
-    size: int
-    extra_prompt: str
+    size: str
+    extras: str
 
 
 # Define response models
@@ -35,9 +49,9 @@ async def generate_ideas(request: IdeasRequest):
     try:
         # Create a prompt for the OpenAI model
         prompt = (
-            f"Generate {request.size} meal ideas in the {request.style} style. "
+            f"Generate three meal ideas in a {request.style} style with a a size of {request.size}. "
             f"Focus on quick, simple meals that are suitable for meal prep. "
-            f"Include additional details: {request.extra_prompt}. "
+            f"Include additional details: {request.extras}. "
             f"Provide each idea with a name and a brief description."
         )
 
@@ -66,10 +80,3 @@ async def generate_ideas(request: IdeasRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# Entry point to run the application
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

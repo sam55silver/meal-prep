@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import StartPlan from './pages/plan/start';
+import PlanChat from './pages/plan';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <StartPlan />,
+    element: <PlanChat />,
   },
 ]);
 

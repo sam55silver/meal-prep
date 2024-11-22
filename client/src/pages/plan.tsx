@@ -1,23 +1,37 @@
 import { Button } from '@/components/ui/button';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
+import { useEffect, useState } from 'react';
+import useWebSocket from 'react-use-websocket';
 
 const socketUrl =
   (import.meta.env.MODE === 'development' ? 'http://localhost:8000' : '') +
   '/chat';
 
 function PlanChat() {
-  const {
-    sendMessage,
-    sendJsonMessage,
-    lastMessage,
-    lastJsonMessage,
-    readyState,
-    getWebSocket,
-  } = useWebSocket(socketUrl, {
+  const { sendJsonMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
     onOpen: () => console.log('opened'),
     //Will attempt to reconnect on all close events, such as server shutting down
-    shouldReconnect: (_closeEvent) => true,
+    shouldReconnect: (_closeEvent: any) => true,
   });
+
+  const [input, setInput] = useState<string>('');
+  const [messages, setMessages] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (lastMessage !== null) {
+      const message: any = JSON.parse(lastMessage.data);
+      setMessages([...messages, message.message]);
+    }
+  }, [lastMessage]);
+
+  // TODO: setup so error happens if user trys to send and is disconnectd from server
+  const sendMsg = (message: string) => {
+    sendJsonMessage({ message });
+  };
+
+  const submitPrompt = () => {
+    sendMsg(input);
+    setInput('');
+  };
 
   const startingPrompts = [
     'The classic Breakfast, Lunch, Snack, and Dinner, all week.',
@@ -26,27 +40,35 @@ function PlanChat() {
   ];
 
   return (
-    <div className="h-full relative">
+    <div className="h-full flex flex-col">
       <h1 className="text-2xl font-bold">Start a Plan</h1>
       <p className="text-muted-foreground">
         How would you like to structure your meal plan?
       </p>
-      <div className="flex flex-col items-end gap-6 mt-8">
+      <div className="flex-grow flex flex-col items-end gap-6 mt-8 overflow-auto">
         {startingPrompts.map((prompt: string, i: number) => (
           <Button
             key={i}
+            onClick={() => sendMsg(prompt)}
             className="shadow-md bg-muted hover:bg-gray-200 w-fit"
           >
             {prompt}
           </Button>
         ))}
+        {messages.map((message: string, i: number) => (
+          <p className="bg-muted w-fit text-sm p-4 rounded-lg" key={i}>
+            {message}
+          </p>
+        ))}
       </div>
-      <div className="w-full absolute bottom-0 bg-muted rounded-lg p-4 flex flex-row gap-2 mt-8">
+      <div className="w-full bg-muted rounded-lg p-4 flex flex-row gap-2 mt-8">
         <input
           placeholder="Or, write out your meal plan here..."
           className="w-full bg-muted focus:outline-none"
         />
-        <Button className="w-fit ml-auto">Sumit</Button>
+        <Button onClick={submitPrompt} className="w-fit ml-auto">
+          Sumit
+        </Button>
       </div>
     </div>
   );

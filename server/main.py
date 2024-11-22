@@ -2,9 +2,12 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
+import json
+
+from langchain_openai import ChatOpenAI
 
 # from openai import OpenAI
-import os
+model = ChatOpenAI(model="gpt-3.5-turbo")
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -33,12 +36,12 @@ class ConnectionManager:
     def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
 
-    async def send_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
+    async def send_message(self, message: dict, websocket: WebSocket):
+        await websocket.send_text(json.dumps(message))
 
-    async def broadcast(self, message: str):
+    async def broadcast(self, message: dict):
         for connection in self.active_connections:
-            await connection.send_text(message)
+            await connection.send_text(json.dumps(message))
 
 
 manager = ConnectionManager()
@@ -50,8 +53,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            print("message!")
-            await manager.broadcast(f"Message: {data}")
+            await manager.send_message({"message": f"Hi! I got your msg, here is the data: {data}"}, websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 

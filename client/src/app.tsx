@@ -17,7 +17,7 @@ function App() {
   return (
     <div className="font-geist h-dvh flex flex-col">
       <header>
-        <div className="py-4 flex justify-between items-center container mx-auto px-4">
+        <div className="py-4 flex-shrink-0 flex justify-between items-center container mx-auto px-4">
           <h2 className="text-xl font-bold">Egg Agent</h2>
           <nav className="space-x-4">
             <Button variant="ghost">Create</Button>

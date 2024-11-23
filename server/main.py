@@ -4,8 +4,6 @@ from pydantic import BaseModel
 from typing import List
 import json
 
-from langchain_openai import ChatOpenAI
-
 # from openai import OpenAI
 model = ChatOpenAI(model="gpt-3.5-turbo")
 
@@ -53,7 +51,10 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            await manager.send_message({"message": f"Hi! I got your msg, here is the data: {data}"}, websocket)
+            data_json = json.loads(data)
+            print(f"Data: {data_json}")
+            res = model.invoke([HumanMessage(content=data_json['message'])])
+            await manager.send_message({"message": res.content}, websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 

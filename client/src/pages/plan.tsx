@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import useWebSocket from 'react-use-websocket';
 
 const socketUrl =
@@ -46,15 +46,19 @@ function PlanChat() {
         How would you like to structure your meal plan?
       </p>
       <div className="flex-grow flex flex-col items-end gap-6 mt-8 overflow-auto">
-        {startingPrompts.map((prompt: string, i: number) => (
-          <Button
-            key={i}
-            onClick={() => sendMsg(prompt)}
-            className="shadow-md bg-muted hover:bg-gray-200 w-fit"
-          >
-            {prompt}
-          </Button>
-        ))}
+        {messages.length === 0 ? (
+          startingPrompts.map((prompt: string, i: number) => (
+            <Button
+              key={i}
+              onClick={() => sendMsg(prompt)}
+              className="shadow-md bg-muted hover:bg-gray-200 w-fit"
+            >
+              {prompt}
+            </Button>
+          ))
+        ) : (
+          <></>
+        )}
         {messages.map((message: string, i: number) => (
           <p className="bg-muted w-fit text-sm p-4 rounded-lg" key={i}>
             {message}
@@ -63,6 +67,10 @@ function PlanChat() {
       </div>
       <div className="w-full bg-muted rounded-lg p-4 flex flex-row gap-2 mt-8">
         <input
+          value={input}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            setInput(e.target.value)
+          }
           placeholder="Or, write out your meal plan here..."
           className="w-full bg-muted focus:outline-none"
         />

@@ -6,6 +6,11 @@ const socketUrl =
   (import.meta.env.MODE === 'development' ? 'http://localhost:8000' : '') +
   '/chat';
 
+interface Message {
+  kind: string;
+  content: string | string[];
+}
+
 function PlanChat() {
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
     onOpen: () => console.log('opened'),
@@ -14,12 +19,14 @@ function PlanChat() {
   });
 
   const [input, setInput] = useState<string>('');
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => console.log(messages), [messages]);
 
   useEffect(() => {
     if (lastMessage !== null) {
       const message: any = JSON.parse(lastMessage.data);
-      setMessages([...messages, message.message]);
+      setMessages((old) => [...old, message]);
     }
   }, [lastMessage]);
 
@@ -59,10 +66,11 @@ function PlanChat() {
         ) : (
           <></>
         )}
-        {messages.map((message: string, i: number) => (
-          <p className="bg-muted w-fit text-sm p-4 rounded-lg" key={i}>
-            {message}
-          </p>
+        {messages.map((message: Message, i: number) => (
+          <div className="bg-muted w-fit text-sm p-4 rounded-lg" key={i}>
+            <h3 className="font-semibold">{message.kind}</h3>
+            <p>{message.content}</p>
+          </div>
         ))}
       </div>
       <div className="w-full bg-muted rounded-lg p-4 flex flex-row gap-2 mt-8">

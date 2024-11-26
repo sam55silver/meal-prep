@@ -1,11 +1,9 @@
+from dataclasses import asdict
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from typing import List
 import json
-
-# from openai import OpenAI
-model = ChatOpenAI(model="gpt-3.5-turbo")
+from lib.agent import stream_graph_updates
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -52,9 +50,11 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             data_json = json.loads(data)
-            print(f"Data: {data_json}")
-            res = model.invoke([HumanMessage(content=data_json['message'])])
-            await manager.send_message({"message": res.content}, websocket)
+
+            updates = stream_graph_updates(data_json['message'])
+            for update in updates:
+                await manager.send_message(asdict(update), websocket)
+
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 

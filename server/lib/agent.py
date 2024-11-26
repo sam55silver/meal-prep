@@ -1,7 +1,8 @@
+from dataclasses import dataclass
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 
-from typing import Annotated
+from typing import Annotated, List, Union
 
 from typing_extensions import TypedDict
 
@@ -49,25 +50,36 @@ graph = graph_builder.compile(checkpointer=memory)
 
 config = RunnableConfig(configurable={"thread_id": "1"})
 
+@dataclass
+class AgentRes:
+    kind: str
+    content: Union[str, List[str]]
+
+
 def stream_graph_updates(user_input: str):
     events = graph.stream(
         {"messages": [("user", user_input)]}, config, stream_mode="values"
     )
     for event in events:
-        event["messages"][-1].pretty_print()
+        latest = event['messages'][-1]
+        kind = latest.type
+        if kind == "human":
+            continue
 
+        if kind == "ai":
+            if len(latest.tool_calls) != 0:
+                print(latest)
+                yield AgentRes("tool_calls", [x['name'] for x in latest.tool_calls])
+                continue
+            yield AgentRes("ai", latest.content)
 
-while True:
-    try:
-        user_input = input("User: ")
-        if user_input.lower() in ["quit", "exit", "q"]:
-            print("Goodbye!")
-            break
-
-        stream_graph_updates(user_input)
-    except:
-        # fallback if input() is not available
-        user_input = "What do you know about LangGraph?"
-        print("User: " + user_input)
-        stream_graph_updates(user_input)
-        break
+# while True:
+#     try:
+#         user_input = input("User: ")
+#         if user_input.lower() in ["quit", "exit", "q"]:
+#             print("Goodbye!")
+#             break
+#
+#         stream_graph_updates(user_input)
+#     except KeyboardInterrupt:
+#         break

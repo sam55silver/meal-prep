@@ -37,6 +37,7 @@ function PlanChat() {
 
   const submitPrompt = () => {
     sendMsg(input);
+    setMessages((old) => [...old, { kind: 'human', content: input }]);
     setInput('');
   };
 
@@ -67,7 +68,10 @@ function PlanChat() {
           <></>
         )}
         {messages.map((message: Message, i: number) => (
-          <div className="bg-muted w-fit text-sm p-4 rounded-lg" key={i}>
+          <div
+            className={`bg-muted w-fit text-sm p-4 rounded-lg ${message.kind != 'human' ? 'self-start' : ''}`}
+            key={i}
+          >
             <h3 className="font-semibold">{message.kind}</h3>
             <p>{message.content}</p>
           </div>

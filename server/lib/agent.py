@@ -12,6 +12,8 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import MemorySaver
 
+from server.lib.tools import search_internet
+from server.lib.templates import simple_template
 @tool
 def multiply(a: int, b: int) -> int:
     """Multiple two numbers together."""
@@ -36,7 +38,7 @@ def chatbot(state: State):
     return {"messages": [llm_w_tools.invoke(state["messages"])]}
 
 graph_builder.add_node("chatbot", chatbot)
-tool_node = ToolNode(tools=[multiply])
+tool_node = ToolNode(tools=[multiply, search_internet])
 graph_builder.add_node("tools", tool_node)
 
 graph_builder.add_conditional_edges(
@@ -57,8 +59,10 @@ class AgentRes:
 
 
 def stream_graph_updates(user_input: str):
+    # generate user prompt (simple at this point)
+    message = simple_template({"user_input": user_input}).messages[0].content
     events = graph.stream(
-        {"messages": [("user", user_input)]}, config, stream_mode="values"
+        {"messages": [("user", message)]}, config, stream_mode="values"
     )
     for event in events:
         latest = event['messages'][-1]

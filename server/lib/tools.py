@@ -1,5 +1,7 @@
 from typing import List
+from langchain_core.tools import tool
 import requests
+
 
 from pydantic import BaseModel
 

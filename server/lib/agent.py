@@ -12,8 +12,9 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import MemorySaver
 
-from server.lib.tools import search_internet
-from server.lib.templates import simple_template
+from .tools import search_internet
+from .prompts import simple_template
+
 @tool
 def multiply(a: int, b: int) -> int:
     """Multiple two numbers together."""
@@ -60,9 +61,10 @@ class AgentRes:
 
 def stream_graph_updates(user_input: str):
     # generate user prompt (simple at this point)
-    message = simple_template({"user_input": user_input}).messages[0].content
+    message = simple_template.invoke({"user_input": user_input})
+    print(f"Message: {message}")
     events = graph.stream(
-        {"messages": [("user", message)]}, config, stream_mode="values"
+        {"messages": message}, config, stream_mode="values"
     )
     for event in events:
         latest = event['messages'][-1]
@@ -76,14 +78,3 @@ def stream_graph_updates(user_input: str):
                 yield AgentRes("tool_calls", [x['name'] for x in latest.tool_calls])
                 continue
             yield AgentRes("ai", latest.content)
-
-# while True:
-#     try:
-#         user_input = input("User: ")
-#         if user_input.lower() in ["quit", "exit", "q"]:
-#             print("Goodbye!")
-#             break
-#
-#         stream_graph_updates(user_input)
-#     except KeyboardInterrupt:
-#         break

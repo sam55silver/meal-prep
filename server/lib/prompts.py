@@ -23,8 +23,9 @@ detailed_template = ChatPromptTemplate([
 
 
 simple_template = ChatPromptTemplate([
-    ("system", "Search for recipes based on the following user input: {user_input}. "
+    ("system", "Search for recipes based on user input. "
                "Provide detailed instructions, include key ingredients, preparation steps, "
                "and links to full recipes. Tailor the results to common preferences such as "
-               "prep time, cuisine type, and dietary considerations whenever relevant.")
+               "prep time, cuisine type, and dietary considerations whenever relevant."),
+    ("user", "{user_input}")
 ])

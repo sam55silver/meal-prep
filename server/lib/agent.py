@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 
@@ -36,7 +37,7 @@ graph_builder = StateGraph(State)
 
 # from openai import OpenAI
 llm = ChatOpenAI(model="gpt-4o-mini")
-llm_w_tools = llm.bind_tools([multiply])
+llm_w_tools = llm.bind_tools([multiply, search_internet])
 
 
 def chatbot(state: State):
@@ -66,20 +67,20 @@ class AgentRes:
 
 
 async def stream_graph_updates(user_input: str):
-    message = simple_template.invoke({"user_input": user_input})
-    print(f"Message: {message}")
+    logging.info(f"New user prompt: {user_input}")
+    prompt = simple_template.invoke({"user_input": user_input})
     events = graph.astream(
-        {"messages": [("user", user_input)]}, config, stream_mode="values"
+        {"messages": prompt.to_messages()}, config, stream_mode="values"
     )
     async for event in events:
         latest = event["messages"][-1]
         kind = latest.type
+        logging.info(f"Event done: {kind}")
         if kind == "human":
             continue
 
         if kind == "ai":
             if len(latest.tool_calls) != 0:
-                print(latest)
                 yield AgentRes("tool_calls", [x["name"] for x in latest.tool_calls])
                 continue
             yield AgentRes("ai", latest.content)

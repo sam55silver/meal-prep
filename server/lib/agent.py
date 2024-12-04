@@ -15,16 +15,19 @@ from langgraph.checkpoint.memory import MemorySaver
 from .tools import search_internet
 from .prompts import simple_template
 
+
 @tool
 def multiply(a: int, b: int) -> int:
     """Multiple two numbers together."""
     return a * b
+
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
     # in the annotation defines how this state key should be updated
     # (in this case, it appends messages to the list, rather than overwriting them)
     messages: Annotated[list, add_messages]
+
 
 memory = MemorySaver()
 
@@ -35,8 +38,10 @@ graph_builder = StateGraph(State)
 llm = ChatOpenAI(model="gpt-4o-mini")
 llm_w_tools = llm.bind_tools([multiply])
 
+
 def chatbot(state: State):
     return {"messages": [llm_w_tools.invoke(state["messages"])]}
+
 
 graph_builder.add_node("chatbot", chatbot)
 tool_node = ToolNode(tools=[multiply, search_internet])
@@ -53,21 +58,21 @@ graph = graph_builder.compile(checkpointer=memory)
 
 config = RunnableConfig(configurable={"thread_id": "1"})
 
+
 @dataclass
 class AgentRes:
     kind: str
     content: Union[str, List[str]]
 
 
-def stream_graph_updates(user_input: str):
-    # generate user prompt (simple at this point)
+async def stream_graph_updates(user_input: str):
     message = simple_template.invoke({"user_input": user_input})
     print(f"Message: {message}")
-    events = graph.stream(
-        {"messages": message}, config, stream_mode="values"
+    events = graph.astream(
+        {"messages": [("user", user_input)]}, config, stream_mode="values"
     )
-    for event in events:
-        latest = event['messages'][-1]
+    async for event in events:
+        latest = event["messages"][-1]
         kind = latest.type
         if kind == "human":
             continue
@@ -75,6 +80,6 @@ def stream_graph_updates(user_input: str):
         if kind == "ai":
             if len(latest.tool_calls) != 0:
                 print(latest)
-                yield AgentRes("tool_calls", [x['name'] for x in latest.tool_calls])
+                yield AgentRes("tool_calls", [x["name"] for x in latest.tool_calls])
                 continue
             yield AgentRes("ai", latest.content)

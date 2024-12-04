@@ -1,8 +1,10 @@
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import json
+
+from langchain_core.runnables import RunnableConfig
 from lib.agent import stream_graph_updates
 
 # Initialize FastAPI app
@@ -21,9 +23,16 @@ app.add_middleware(
 )
 
 
+@dataclass
+class Connection:
+    socket: WebSocket
+    convo: RunnableConfig
+
+
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        self.active_connections: List[Connection] = []
+        self.convo_count = 0
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -51,8 +60,8 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             data_json = json.loads(data)
 
-            updates = stream_graph_updates(data_json['message'])
-            for update in updates:
+            updates = stream_graph_updates(data_json["message"])
+            async for update in updates:
                 await manager.send_message(asdict(update), websocket)
 
     except WebSocketDisconnect:

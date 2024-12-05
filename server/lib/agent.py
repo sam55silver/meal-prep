@@ -16,6 +16,9 @@ from langgraph.checkpoint.memory import MemorySaver
 from .tools import search_internet
 from .prompts import simple_template
 
+import logging
+
+logger = logging.getLogger("meal-prep")
 
 @tool
 def multiply(a: int, b: int) -> int:
@@ -67,7 +70,7 @@ class AgentRes:
 
 
 async def stream_graph_updates(user_input: str):
-    logging.info(f"New user prompt: {user_input}")
+    logger.info(f"New user prompt: {user_input}")
     prompt = simple_template.invoke({"user_input": user_input})
     events = graph.astream(
         {"messages": prompt.to_messages()}, config, stream_mode="values"
@@ -75,7 +78,7 @@ async def stream_graph_updates(user_input: str):
     async for event in events:
         latest = event["messages"][-1]
         kind = latest.type
-        logging.info(f"Event done: {kind}")
+        logger.info(f"Event done: {kind}")
         if kind == "human":
             continue
 

@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass
+import logging
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
@@ -6,6 +7,15 @@ import json
 
 from langchain_core.runnables import RunnableConfig
 from lib.agent import stream_graph_updates
+
+logger = logging.getLogger("meal-prep")
+logger.setLevel(logging.DEBUG)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+# Create and set formatters
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 # Initialize FastAPI app
 app = FastAPI()

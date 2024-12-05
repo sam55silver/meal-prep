@@ -2,6 +2,10 @@ from typing import List
 from langchain_core.tools import tool
 import requests
 
+import logging
+
+logger = logging.getLogger("meal-prep")
+
 
 from pydantic import BaseModel
 
@@ -36,6 +40,7 @@ def search_internet(search_query: str) -> SearchResults:
     headers = {"Content-Type": "application/json"}
 
     response = requests.post(api_endpoint, json=payload, headers=headers)
+    logger.info(f"Res from perplexica: {response}")
     response.raise_for_status()
     search = response.json()
     return SearchResults(message=search["message"], sources=search["sources"])
